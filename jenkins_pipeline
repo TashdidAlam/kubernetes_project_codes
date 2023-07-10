@@ -1,0 +1,32 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('SCM') {
+            steps {
+               git branch: 'main', url: 'https://github.com/TashdidAlam/jenkins_kube_deploy.git'
+            }
+        }
+        stage('Docker Image Build') {
+            steps {
+                script{
+                    img_todo = docker.build('tashdidalam/jenkins-test-project2:latest')
+                }
+            }
+        }
+        stage('Push to docker') {
+            steps {
+                script{
+                    withDockerRegistry(credentialsId: 'docker-hub-credentials', url: '') {
+                        img_todo.push()
+                    }
+                }
+            }
+        }
+        stage('Deploy in Kubernetes'){
+            steps{
+                sh 'kubectl apply -f app.yml'
+            }
+        }
+    }
+}
